@@ -118,8 +118,12 @@ class AutoRun:
     def do(boy):
         boy.frame = (boy.frame + 1) % 8
         boy.x += boy.dir * 10
-        print('AutoRun')
-        if get_time() - boy.wait_time > 1:
+        if boy.x > 800:
+            boy.dir, boy.action = -1, 0
+        elif boy.x < 0:
+            boy.dir, boy.action = 1, 1
+        #print('AutoRun')
+        if get_time() - boy.wait_time > 5:
             boy.state_machine.handle_event(('TIME_OUT', 0))
 
     @staticmethod
