@@ -2,7 +2,7 @@
 import math
 
 from pico2d import load_image, get_time
-from sdl2 import SDL_KEYDOWN, SDLK_SPACE, SDLK_RIGHT, SDL_KEYUP, SDLK_LEFT
+from sdl2 import SDL_KEYDOWN, SDLK_SPACE, SDLK_RIGHT, SDL_KEYUP, SDLK_LEFT, SDLK_a
 
 
 def space_down(e):
@@ -25,7 +25,7 @@ def left_up(e):
     return e[0] == 'INPUT' and e[1].type == SDL_KEYUP and e[1].key == SDLK_LEFT
 
 def press_a(e):
-    return e[0] == 'INPUT' and e[1].type == SDL_KEYDOWN and e[1].key == 'a'
+    return e[0] == 'INPUT' and e[1].type == SDL_KEYDOWN and e[1].key == SDLK_a
 
 class Sleep:
 
@@ -40,13 +40,13 @@ class Sleep:
     @staticmethod
     def do(boy):
         boy.frame = (boy.frame + 1) % 8
-        print('드르렁')
+        #print('드르렁')
 
     @staticmethod
     def draw(boy):
         if boy.action == 2:
             boy.image.clip_composite_draw(boy.frame * 100, 300, 100, 100,
-                                      -1 * math.pi / 2, '', boy.x + 25, boy.y - 25, 100, 100)
+                                      -1* math.pi / 2, '', boy.x + 25, boy.y - 25, 100, 100)
         else:
             boy.image.clip_composite_draw(boy.frame * 100, 300, 100, 100,
                                           math.pi / 2, '', boy.x - 25, boy.y - 25, 100, 100)
@@ -104,10 +104,11 @@ class Run:
 class AutoRun:
     @staticmethod
     def enter(boy, e):
-        if right_down(e) or left_up(e):  # 오른쪽 으로 RUN
-            boy.dir, boy.action = 1, 1
-        elif left_down(e) or right_up(e):  # 왼쪽 으로 RUN
-            boy.dir, boy.action = -1, 0
+        if press_a(e):      # a 키를 눌렀을 경우
+            if boy.action == 2:     # 왼쪽 으로 AutoRun
+                boy.dir, boy.action = -1, 0
+            elif boy.action == 3:   # 오른쪽 으로 AutoRun
+                boy.dir, boy.action = 1, 1
 
     @staticmethod
     def exit(boy, e):
@@ -116,11 +117,14 @@ class AutoRun:
     @staticmethod
     def do(boy):
         boy.frame = (boy.frame + 1) % 8
-        boy.x += boy.dir * 5
+        boy.x += boy.dir * 10
+        print('AutoRun')
+        if get_time() - boy.wait_time > 1:
+            boy.state_machine.handle_event(('TIME_OUT', 0))
 
     @staticmethod
     def draw(boy):
-        boy.image.clip_draw(boy.frame * 100, boy.action * 100, 100, 100, boy.x, boy.y)
+        boy.image.clip_draw(boy.frame * 100, boy.action * 100, 100, 100, boy.x, boy.y+40,200, 200)
 
 
 class StateMachine:
@@ -129,8 +133,9 @@ class StateMachine:
         self.cur_state = Idle
         self.table = {
             Sleep: {space_down: Idle, right_down: Run, left_down: Run, right_up: Run, left_up:Run},
-            Idle: {time_out: Sleep, right_down: Run, left_down: Run, left_up: Run, right_up: Run},
-            Run: {right_down: Idle, left_down: Idle, right_up: Idle, left_up: Idle}
+            Idle: {press_a: AutoRun, time_out: Sleep, right_down: Run, left_down: Run, left_up: Run, right_up: Run},
+            Run: {right_down: Idle, left_down: Idle, right_up: Idle, left_up: Idle},
+            AutoRun: {time_out: Idle}
         }
 
     def handle_event(self, e):
