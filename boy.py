@@ -139,7 +139,7 @@ class StateMachine:
             Sleep: {space_down: Idle, right_down: Run, left_down: Run, right_up: Run, left_up:Run},
             Idle: {press_a: AutoRun, time_out: Sleep, right_down: Run, left_down: Run, left_up: Run, right_up: Run},
             Run: {right_down: Idle, left_down: Idle, right_up: Idle, left_up: Idle},
-            AutoRun: {time_out: Idle}
+            AutoRun: {time_out: Idle, right_down: Run, left_down: Run, left_up: Run, right_up: Run}
         }
 
     def handle_event(self, e):
